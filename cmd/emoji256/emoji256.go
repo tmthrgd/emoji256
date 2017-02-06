@@ -24,6 +24,7 @@ func main() {
 		err = emoji256.Decode(os.Stdout, os.Stdin)
 	} else {
 		err = emoji256.Encode(os.Stdout, os.Stdin)
+		os.Stdout.WriteString("\n")
 	}
 
 	if err != nil {
