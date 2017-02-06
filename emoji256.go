@@ -16,6 +16,15 @@ import (
 	"unicode"
 )
 
+func must(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(1)
+}
+
 func main() {
 	var decode bool
 	flag.BoolVar(&decode, "d", false, "decode")
@@ -31,16 +40,13 @@ func main() {
 		r, _, err := in.ReadRune()
 		if err == io.EOF {
 			return
-		} else if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
 		}
+		must(err)
 
 		if b, ok := decTable[r]; ok {
-			out.WriteByte(b)
+			must(out.WriteByte(b))
 		} else if !unicode.IsSpace(r) {
-			fmt.Fprintf(os.Stderr, "invalid character: %#U\n", r)
-			os.Exit(1)
+			must(fmt.Errorf("invalid character: %#U", r))
 		}
 	}
 
@@ -49,12 +55,10 @@ func main() {
 		if err == io.EOF {
 			out.WriteRune('\n')
 			return
-		} else if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
 		}
+		must(err)
 
-		r := encTable[b]
-		out.Write(r)
+		_, err = out.Write(encTable[b])
+		must(err)
 	}
 }
