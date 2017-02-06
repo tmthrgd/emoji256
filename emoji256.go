@@ -27,37 +27,34 @@ func main() {
 	out := bufio.NewWriter(os.Stdout)
 	defer out.Flush()
 
-	if decode {
-		for {
-			r, _, err := in.ReadRune()
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-
-			if b, ok := decTable[r]; ok {
-				out.WriteByte(b)
-			} else if !unicode.IsSpace(r) {
-				fmt.Fprintf(os.Stderr, "invalid character: %#U\n", r)
-				os.Exit(1)
-			}
-		}
-	} else {
-		for {
-			b, err := in.ReadByte()
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-
-			r := encTable[b]
-			out.WriteRune(r)
+	for decode {
+		r, _, err := in.ReadRune()
+		if err == io.EOF {
+			return
+		} else if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 
-		out.WriteRune('\n')
+		if b, ok := decTable[r]; ok {
+			out.WriteByte(b)
+		} else if !unicode.IsSpace(r) {
+			fmt.Fprintf(os.Stderr, "invalid character: %#U\n", r)
+			os.Exit(1)
+		}
+	}
+
+	for {
+		b, err := in.ReadByte()
+		if err == io.EOF {
+			out.WriteRune('\n')
+			return
+		} else if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		r := encTable[b]
+		out.WriteRune(r)
 	}
 }
