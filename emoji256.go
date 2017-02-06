@@ -3,62 +3,96 @@
 // Modified BSD License license that can be found in
 // the LICENSE file.
 
-package main
+package emoji256
 
-//go:generate go run ./table-gen.go -o table.go -p main
+//go:generate go run ./table-gen.go -o table.go -p emoji256
 
 import (
 	"bufio"
-	"flag"
+	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"unicode"
 )
 
-func must(err error) {
-	if err == nil {
-		return
-	}
-
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
-}
-
-func main() {
-	var decode bool
-	flag.BoolVar(&decode, "d", false, "decode")
-
-	flag.Parse()
-
-	in := bufio.NewReader(os.Stdin)
-
-	out := bufio.NewWriter(os.Stdout)
-	defer out.Flush()
-
-	for decode {
-		r, _, err := in.ReadRune()
-		if err == io.EOF {
-			return
-		}
-		must(err)
-
-		if b, ok := decTable[r]; ok {
-			must(out.WriteByte(b))
-		} else if !unicode.IsSpace(r) {
-			must(fmt.Errorf("invalid character: %#U", r))
-		}
-	}
+func Encode(w io.Writer, r io.Reader) error {
+	in, out := bufio.NewReader(r), bufio.NewWriter(w)
 
 	for {
 		b, err := in.ReadByte()
-		if err == io.EOF {
-			out.WriteRune('\n')
-			return
+		switch err {
+		case nil:
+		case io.EOF:
+			return out.Flush()
+		default:
+			out.Flush()
+			return err
 		}
-		must(err)
 
-		_, err = out.Write(encTable[b])
-		must(err)
+		if _, err = out.Write(encTable[b]); err != nil {
+			out.Flush()
+			return err
+		}
 	}
+}
+
+func EncodeBytes(in []byte) (out []byte, err error) {
+	r := bytes.NewReader(in)
+
+	var buf bytes.Buffer
+	buf.Grow(len(in) * 4)
+
+	if err = Encode(&buf, r); err != nil {
+		return
+	}
+
+	return buf.Bytes(), nil
+}
+
+func EncodeToString(in []byte) (out string, err error) {
+	buf, err := EncodeBytes(in)
+	return string(buf), err
+}
+
+func Decode(w io.Writer, r io.Reader) error {
+	in, out := bufio.NewReader(r), bufio.NewWriter(w)
+
+	for {
+		r, _, err := in.ReadRune()
+		switch err {
+		case nil:
+		case io.EOF:
+			return out.Flush()
+		default:
+			out.Flush()
+			return err
+		}
+
+		if b, ok := decTable[r]; ok {
+			if err = out.WriteByte(b); err != nil {
+				out.Flush()
+				return err
+			}
+		} else if !unicode.IsSpace(r) {
+			out.Flush()
+			return fmt.Errorf("invalid character: %#U", r)
+		}
+	}
+}
+
+func DecodeBytes(in []byte) (out []byte, err error) {
+	r := bytes.NewReader(in)
+
+	var buf bytes.Buffer
+	buf.Grow(len(in) / 3)
+
+	if err = Decode(&buf, r); err != nil {
+		return
+	}
+
+	return buf.Bytes(), nil
+}
+
+func DecodeString(in string) (out []byte, err error) {
+	return DecodeBytes([]byte(in))
 }
