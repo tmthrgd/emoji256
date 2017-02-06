@@ -62,9 +62,7 @@ func main() {
 			r := encTable[b]
 			out.WriteRune(r)
 		}
-	}
 
-	if !decode {
 		out.WriteRune('\n')
 	}
 }
