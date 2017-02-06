@@ -79,7 +79,7 @@ func main() {
 			log.Fatalf("unknown code point '%s'", name)
 		}
 
-		n := utf8.EncodeRune(buf[:], rune(code))
+		n := utf8.EncodeRune(buf[:], code)
 		switch n {
 		case 1:
 			fmt.Fprintf(out, "\t{0x%02x},                   // %s\n", buf[0], name)
