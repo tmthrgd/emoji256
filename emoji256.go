@@ -28,11 +28,6 @@ func main() {
 	defer out.Flush()
 
 	if decode {
-		decTable := make(map[rune]byte, len(encTable))
-		for b, r := range encTable {
-			decTable[r] = byte(b)
-		}
-
 		for {
 			r, _, err := in.ReadRune()
 			if err == io.EOF {

@@ -31,6 +31,11 @@ package %[2]s
 var encTable = []rune{
 `
 
+const middle = `}
+
+var decTable = map[rune]byte{
+`
+
 const footer = `}
 `
 
@@ -72,6 +77,17 @@ func main() {
 		}
 
 		fmt.Fprintf(out, "\t0x%08x, // %s\n", code, name)
+	}
+
+	fmt.Fprint(out, middle)
+
+	for i, name := range encodingTable {
+		code, ok := UCD[name]
+		if !ok {
+			log.Fatalf("unknown code point '%s'", name)
+		}
+
+		fmt.Fprintf(out, "\t0x%08x: 0x%02x, // %s\n", code, i, name)
 	}
 
 	fmt.Fprint(out, footer)
