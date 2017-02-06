@@ -55,6 +55,6 @@ func main() {
 		}
 
 		r := encTable[b]
-		out.WriteRune(r)
+		out.Write(r)
 	}
 }
