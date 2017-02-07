@@ -29,7 +29,10 @@ func Encode(w io.Writer, r io.Reader) error {
 			return err
 		}
 
-		if _, err = out.Write(encTable[b]); err != nil {
+		start := encTableIndex[b]
+		end := encTableIndex[int(b)+1]
+
+		if _, err = out.Write(encTableBytes[start:end]); err != nil {
 			out.Flush()
 			return err
 		}
