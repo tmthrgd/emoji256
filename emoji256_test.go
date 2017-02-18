@@ -130,7 +130,7 @@ func BenchmarkDecode(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				r.N = size.l
 
-				if err := Encode(w, r); err != nil {
+				if err := Decode(w, r); err != nil {
 					b.Fatal(err)
 				}
 			}
