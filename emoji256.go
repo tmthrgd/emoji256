@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 	"unicode"
 )
 
@@ -94,5 +95,14 @@ func DecodeBytes(in []byte) (out []byte, err error) {
 }
 
 func DecodeString(in string) (out []byte, err error) {
-	return DecodeBytes([]byte(in))
+	r := strings.NewReader(in)
+
+	var buf bytes.Buffer
+	buf.Grow(len(in) / 3)
+
+	if err = Decode(&buf, r); err != nil {
+		return
+	}
+
+	return buf.Bytes(), nil
 }
