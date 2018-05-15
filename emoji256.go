@@ -51,8 +51,16 @@ func EncodeBytes(in []byte) (out []byte, err error) {
 }
 
 func EncodeToString(in []byte) (out string, err error) {
-	buf, err := EncodeBytes(in)
-	return string(buf), err
+	r := bytes.NewReader(in)
+
+	var buf strings.Builder
+	buf.Grow(len(in) * 4)
+
+	if err = Encode(&buf, r); err != nil {
+		return
+	}
+
+	return buf.String(), nil
 }
 
 func Decode(w io.Writer, r io.Reader) error {
